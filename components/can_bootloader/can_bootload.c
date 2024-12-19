@@ -17,19 +17,37 @@
 #define OTA_TP_DATA_HEADER 0x18EB7799
 #define OTA_END_SEGMENT 0x18E32399
 #define OTA_COMPLETE_HEADER 0x18E32299
+#define OTA_STATUS_TX_HEADER 0x18E32177
 
 /*an ota data write buffer ready to write to the flash*/
 static char ota_write_data[BUFFSIZE + 1] = {0};
 static esp_ota_handle_t update_handle = 0;
 const esp_partition_t *update_partition = NULL;
 
+
+static UpdateState state = UPDATE_Idle;
+
+UpdateState Bootload_current_state(void) {
+    return state;
+}
+
 void Bootload_task(void *pvParameters)
 {
     twai_message_t msg;
+    msg.identifier = OTA_STATUS_TX_HEADER;
+    msg.extd = 1;
+    msg.rtr = 0;
+    msg.data_length_code = 1;
+
     while(true)
     {
+        msg.data[0] = (uint8_t)state;
+        if (twai_transmit(&msg, pdMS_TO_TICKS(10)) != ESP_OK)
+        {
+            ESP_LOGW(TAG, "Failed to queue status message for transmission\n");
+        }
 
-vTaskDelay()
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -70,6 +88,7 @@ void Bootload_rx(twai_message_t rx_msg)
             esp_ota_abort(update_handle);
         }
         ESP_LOGI(TAG, "esp_ota_begin succeeded");
+        state = UPDATE_InProgress;
     }
     else if (rx_msg.identifier == OTA_TP_CTRL_HEADER)
     {
@@ -126,6 +145,7 @@ void Bootload_rx(twai_message_t rx_msg)
                 ESP_LOGE(TAG, "esp_ota_end failed (%s)!", esp_err_to_name(err));
             }
         }
+        state = UPDATE_Complete;
 
         err = esp_ota_set_boot_partition(update_partition);
         if (err != ESP_OK)
