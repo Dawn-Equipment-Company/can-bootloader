@@ -11,13 +11,14 @@
 #define BUFFSIZE 1024
 
 #define TAG "CAN_BOOTLOAD"
-#define OTA_BEGIN_HEADER 0x18E32099
-#define OTA_TP_CTRL_TX_HEADER 0x18EC9977
-#define OTA_TP_CTRL_HEADER 0x18EC7799
-#define OTA_TP_DATA_HEADER 0x18EB7799
-#define OTA_END_SEGMENT 0x18E32399
-#define OTA_COMPLETE_HEADER 0x18E32299
-#define OTA_STATUS_TX_HEADER 0x18E32177
+uint32_t OTA_BEGIN_HEADER = 0x18E30099;
+uint32_t OTA_END_SEGMENT = 0x18E40099;
+uint32_t OTA_COMPLETE_HEADER = 0x18E50099;
+uint32_t OTA_TP_DATA_HEADER = 0x18EB0099;
+uint32_t OTA_TP_CTRL_HEADER = 0x18EC0099;
+
+uint32_t OTA_TP_CTRL_TX_HEADER = 0x18EC9900;
+uint32_t OTA_STATUS_TX_HEADER = 0x18E32100;
 
 /*an ota data write buffer ready to write to the flash*/
 static char ota_write_data[BUFFSIZE + 1] = {0};
@@ -51,9 +52,16 @@ void Bootload_task(void *pvParameters)
     }
 }
 
-void Bootload_init(void)
+void Bootload_init(uint32_t addr)
 {
     ESP_LOGI(TAG, "Starting CAN bootloader");
+    OTA_TP_CTRL_TX_HEADER = OTA_TP_CTRL_TX_HEADER | addr;
+    OTA_STATUS_TX_HEADER = OTA_STATUS_TX_HEADER | addr;
+    OTA_BEGIN_HEADER = OTA_BEGIN_HEADER | (addr << 8);
+    OTA_TP_CTRL_HEADER = OTA_TP_CTRL_HEADER | (addr << 8);
+    OTA_TP_DATA_HEADER = OTA_TP_DATA_HEADER | (addr << 8);
+    OTA_END_SEGMENT = OTA_END_SEGMENT | (addr << 8);
+    OTA_COMPLETE_HEADER = OTA_COMPLETE_HEADER | (addr << 8);
 
     const esp_partition_t *configured = esp_ota_get_boot_partition();
     const esp_partition_t *running = esp_ota_get_running_partition();

@@ -9,7 +9,7 @@ typedef enum UpdateState_E {
     UPDATE_Complete,
 } UpdateState;
 
-void Bootload_init(void);
+void Bootload_init(uint32_t addr);
 
 /// @brief Get the current state of the bootload operation.  Useful if you want to shut down outputs etc while bootloading
 /// @param  

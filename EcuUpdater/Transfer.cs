@@ -16,6 +16,7 @@ namespace EcuUpdater
 
     public class Transfer
     {
+        private int addr;
         enum TransferState
         {
             Idle,
@@ -24,11 +25,12 @@ namespace EcuUpdater
             SentData,
         }
 
-        public Transfer(byte[] stream)
+        public Transfer(byte[] stream, int addr)
         {
             this._data = stream;
             this._byteCount = (int)stream.Length;
             this._packetCount = this._byteCount / 7;
+            this.addr = addr;
         }
 
         public void Start()
@@ -45,7 +47,7 @@ namespace EcuUpdater
                 var b2 = (byte)(this._byteCount & 0x00FF);
                 rval.Add(new CanMessage()
                 {
-                    Header = 0x18EC7799,
+                    Header = 0x18EC0099 | (addr << 8),
                     Data = new byte[] { 16, b2, b1, (byte)this._packetCount, 0xFF, 0, 0, 0 }
                 });
                 this._state = TransferState.SentRts;
@@ -74,7 +76,7 @@ namespace EcuUpdater
                         {
                             var m = new CanMessage()
                             {
-                                Header = 0x18EB7799,
+                                Header = 0x18EB0099 | (addr << 8),
                                 Data = new[] {
                                     (byte)i,
                                     this._data[i * 7],
@@ -100,7 +102,7 @@ namespace EcuUpdater
                             }
                             var m = new CanMessage()
                             {
-                                Header = 0x18EB7799,
+                                Header = 0x18EB0099 | (addr << 8),
                                 Data = rd,
                             };
                             rval.Add(m);

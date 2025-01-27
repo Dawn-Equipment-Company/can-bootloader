@@ -1,4 +1,4 @@
-
+#ifdef old
 #include <string.h>
 #include "esp_log.h"
 #include "esp_ota_ops.h"
@@ -156,3 +156,4 @@ void Bootload_rx(twai_message_t rx_msg)
         esp_restart();
     }
 }
+#endif

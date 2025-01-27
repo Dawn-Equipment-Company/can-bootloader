@@ -1,12 +1,15 @@
 using Peak.Can.Basic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 
 namespace EcuUpdater
 {
+    // scale address = 0x77
     public partial class Form1 : Form
     {
+        public int addr = 0x77;
         public Form1()
         {
             InitializeComponent();
@@ -81,7 +84,7 @@ namespace EcuUpdater
                 //System.Threading.Thread.Sleep(200);
                 PcanSend(new CanMessage()
                 {
-                    Header = 0x18E32099,
+                    Header = 0x18E30099 | (addr << 8),
                     Data = new byte[0],
                 });
 
@@ -104,7 +107,7 @@ namespace EcuUpdater
                             segment_bytes = reader.ReadBytes(980);
                             //reader.Read(segment_bytes, offset, 980);
 
-                            var t = new Transfer(segment_bytes);
+                            var t = new Transfer(segment_bytes, addr);
                             t.Start();
                             var tx = t.Next(null);
                             PcanSend(tx.First());
@@ -124,7 +127,7 @@ namespace EcuUpdater
                                     // send end of segment message
                                     PcanSend(new CanMessage()
                                     {
-                                        Header = 0x18E32399,
+                                        Header = 0x18E40099 | (addr << 8),
                                         Data = new byte[] { 0 },
                                     });
                                 }
@@ -132,50 +135,11 @@ namespace EcuUpdater
                             progressBar1.Value++;
                         }
                     }
-                    /*var length = stream.Length;
-                    var totalTx = length / 8;
-                    progressBar1.Maximum = (int)totalTx;
-                    using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
-                    {
-
-                        var done = false;
-                        var i = 1;
-                        while (!done)
-                        {
-                            if (i < totalTx)
-                            {
-                                progressBar1.Value = i;
-                            }
-                            Debug.WriteLine(string.Format("{0} / {1}", i, totalTx));
-                            i++;
-                            var b = new byte[8];
-                            var s = new Span<byte>(b);
-                            var dlc = reader.Read(s);
-                            tx_msg.DLC = (byte)dlc;
-                            tx_msg.Data = s.ToArray();
-                            // ota data message - use TP
-                            tx_msg.ID = 0x18E32199;
-                            if (dlc > 0)
-                            {
-                                Api.Write(PcanChannel.Usb01, tx_msg);
-                            }
-                            // got it to work with 50ms delay but it takes like 20 minutes
-                            System.Threading.Thread.Sleep(50);
-                            if (dlc < 8)
-                            {
-                                done = true;
-                            }
-                        }
-                        Debug.WriteLine("Sending end update command");
-                        tx_msg.ID = 0x18E32299;
-                        tx_msg.DLC = 0;
-                        Api.Write(PcanChannel.Usb01, tx_msg);
-                    }*/
                 }
                 Debug.WriteLine("Done");
                 PcanSend(new CanMessage()
                 {
-                    Header = 0x18E32299,
+                    Header = 0x18E50099 | (addr << 8),
                     Data = new byte[0],
                 });
             }

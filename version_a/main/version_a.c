@@ -44,7 +44,7 @@ void app_main(void)
 
 	printf("THIS IS VERSION A\r\n");
 
-	Bootload_init();
+	Bootload_init(0x33);
 	while(true)
 	{
         if (twai_receive(&rx_msg, pdMS_TO_TICKS(10)) == ESP_OK)
