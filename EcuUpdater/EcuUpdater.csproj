@@ -2,14 +2,27 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Candle.NET\**" />
+    <Compile Remove="Candle\**" />
+    <EmbeddedResource Remove="Candle.NET\**" />
+    <EmbeddedResource Remove="Candle\**" />
+    <None Remove="Candle.NET\**" />
+    <None Remove="Candle\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Peak.PCANBasic.NET" Version="4.9.0.942" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Candle.NET\Candle.NET.csproj" />
   </ItemGroup>
 
 </Project>

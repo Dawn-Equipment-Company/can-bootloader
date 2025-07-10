@@ -1,4 +1,6 @@
+using Candle;
 using Peak.Can.Basic;
+//using Peak.Can.Basic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,7 +11,10 @@ namespace EcuUpdater
     // scale address = 0x77
     public partial class Form1 : Form
     {
-        public int addr = 0x77;
+        private Channel _channel;
+        private Device _device;
+
+        public int addr = 0x66;
         public Form1()
         {
             InitializeComponent();
@@ -17,12 +22,21 @@ namespace EcuUpdater
 
         private void button1_Click(object sender, EventArgs e)
         {
+            /*
+            var devices = Device.ListDevices();
+            _device = devices.First();
+            _device.Open();
+            _channel = _device.Channels.First().Value;
+            _channel.Start(500000);
+            timer1.Start();
+            button2.Enabled = true;
+            */
             var tokenSource = new CancellationTokenSource();
             var cancel = tokenSource.Token;
 
             var t = Task.Run(() =>
             {
-                var status = Peak.Can.Basic.Api.Initialize(PcanChannel.Usb01, Bitrate.Pcan250);
+                var status = Peak.Can.Basic.Api.Initialize(PcanChannel.Usb01, Bitrate.Pcan500);
                 Debug.WriteLine(string.Format("Init status: {0}", status));
                 button2.Invoke(() => button2.Enabled = true);
 
@@ -51,6 +65,13 @@ namespace EcuUpdater
             tx_msg.DLC = (byte)msg.Data.Length;
             tx_msg.Data = msg.Data;
             Api.Write(PcanChannel.Usb01, tx_msg);
+            /*
+            var frame = new Frame();
+            frame.Identifier = (uint)msg.Header;
+            frame.Extended = true;
+            frame.Data = msg.Data;
+            _channel.Send(frame);
+            */
         }
 
         private CanMessage? PcanRead()
@@ -68,14 +89,25 @@ namespace EcuUpdater
             {
                 return null;
             }
+
+            /*var receivedFrames = _channel.Receive();
+            if(receivedFrames.Count() > 0)
+            {
+                var m = receivedFrames.FirstOrDefault();
+                return new CanMessage()
+                {
+                    Header = (int)m.Identifier,
+                    Data = m.Data
+                };
+            }
+            else
+            {
+                return null;
+            }*/
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //PcanMessage tx_msg = new PcanMessage();
-            //tx_msg.MsgType = MessageType.Extended;
-            //tx_msg.ID = 0x18E32099;
-            //tx_msg.DLC = 0;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 // start bootload message - needs more info
@@ -143,6 +175,11 @@ namespace EcuUpdater
                     Data = new byte[0],
                 });
             }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+
         }
     }
 }

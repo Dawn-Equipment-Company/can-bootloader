@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             button1 = new Button();
             openFileDialog1 = new OpenFileDialog();
             button2 = new Button();
             progressBar1 = new ProgressBar();
+            timer1 = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
             // button1
@@ -66,6 +68,10 @@
             progressBar1.Size = new Size(271, 23);
             progressBar1.TabIndex = 2;
             // 
+            // timer1
+            // 
+            timer1.Tick += timer1_Tick;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -86,5 +92,6 @@
         private OpenFileDialog openFileDialog1;
         private Button button2;
         private ProgressBar progressBar1;
+        private System.Windows.Forms.Timer timer1;
     }
 }
